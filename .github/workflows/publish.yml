@@ -6,7 +6,7 @@ on:
       - "v*"
 
 env:
-  NPM_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
+  NPM_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
 
 jobs:
   automation:
