@@ -1,0 +1,25 @@
+name: Publish
+
+on:
+  push:
+    tags:
+      - "v*"
+
+env:
+  NPM_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
+
+jobs:
+  automation:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: battila7/get-version-action@v2
+
+      - name: build
+        uses: ./.github/actions/build
+
+      - name: publish
+        shell: bash
+        run: yarn publish
