@@ -11,7 +11,7 @@
 import * as EXO from '@aviutil/exo'
 
 const exo = EXO.create({
-    object: {
+    item: {
         _name: 'オブジェクト',
     },
 })

@@ -21,20 +21,20 @@ export const fromString = <T extends ObjectItemType = ObjectItemType>(str: strin
         }
     }
 
-    const { exedit, '0': header, '0.0': object, ...rest } = base
+    const { exedit, '0': header, '0.0': item, ...rest } = base
     const last = Object.keys(rest).pop() as string
     const { [last]: footer, ...extras } = rest
 
     return create({
         exedit,
         header,
-        object,
+        item,
         extras,
         footer,
     })
 }
 export const create = <T extends ObjectItemType>(context: {
-    object: T
+    item: T
     extras?: Record<string, any>
     exedit?: Exedit
     header?: ObjectHeader
@@ -70,7 +70,7 @@ export const create = <T extends ObjectItemType>(context: {
     const obj: ExoObject<T> = {
         exedit: context.exedit,
         '0': context.header,
-        '0.0': context.object,
+        '0.0': context.item,
     }
     if (context.extras) for (const key in context.extras) obj[key as keyof ExoObject<T>] = context.extras[key]
 
@@ -88,8 +88,7 @@ export const create = <T extends ObjectItemType>(context: {
         },
         toString() {
             let contents = ''
-            const keys = this.keys()
-            for (const key of keys) {
+            for (const key of this.keys()) {
                 const typedKey = key as keyof typeof this
                 if (contents !== '') contents += '\n'
                 contents += `[${key}]`
@@ -105,7 +104,7 @@ export const create = <T extends ObjectItemType>(context: {
             this[`0.${Object.keys(obj).length - 2}`] = footer
         },
         deleteItem(key: `0.${number}`) {
-            if (!Object.keys(this).includes(key)) throw new Error(`${key} is not found`)
+            if (!this.keys().includes(key)) throw new Error(`${key} is not found`)
             const index = key.replace(/^0\./, '')
             delete this[key]
             const behind = this.keys().filter((k) => k.replace(/^0\./, '') > index)
@@ -116,6 +115,14 @@ export const create = <T extends ObjectItemType>(context: {
                 this[`0.${Number(k.replace(/^0\./, '')) - 1}`] = item
                 delete this[typedKey]
             })
+        },
+        toObject() {
+            const cloned: Record<string, any> = {}
+            for (const key of this.keys()) {
+                const typedKey = key as keyof typeof this
+                cloned[typedKey] = this[typedKey]
+            }
+            return cloned as ExoType<T>
         },
         ...obj,
     }

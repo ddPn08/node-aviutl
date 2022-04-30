@@ -2,7 +2,7 @@ import * as EXO from '@aviutil/exo'
 
 describe('exo from object', () => {
     const exo = EXO.create({
-        object: {
+        item: {
             _name: 'テキスト',
         },
     })
@@ -21,6 +21,15 @@ describe('exo from object', () => {
         expect(exo.keys()).toContain('0')
         expect(exo.keys()).toContain('0.0')
         expect(exo.keys()).toContain('0.1')
+    })
+    test('check to object method', () => {
+        const obj = exo.toObject()
+        const keys = Object.keys(obj)
+        expect(keys).toHaveLength(4)
+        expect(keys).toContain('exedit')
+        expect(keys).toContain('0')
+        expect(keys).toContain('0.0')
+        expect(keys).toContain('0.1')
     })
     test('check add item method', () => {
         exo.addItem({
@@ -60,7 +69,7 @@ _name=標準描画`
 
 describe('exo extra items', () => {
     const exo = EXO.create({
-        object: {
+        item: {
             _name: 'テキスト',
         },
         extras: {
