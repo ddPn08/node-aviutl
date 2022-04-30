@@ -8,7 +8,7 @@ describe('exo from object', () => {
     })
     test('check string exo', () => {
         const str = exo.toString()
-        const lines = str.split('\n')
+        const lines = str.split('\r\n')
         expect(lines[0]).toBe('[exedit]')
         expect(lines[8]).toBe('[0]')
         expect(lines[14]).toBe('[0.0]')
@@ -57,7 +57,7 @@ start=1
 [0.0]
 _name=テキスト
 [0.1]
-_name=標準描画`
+_name=標準描画`.replace(/\n/g, '\r\n')
     const exo = EXO.parse(str)
     test('check string exo', () => {
         expect(exo.toString()).toBe(str)

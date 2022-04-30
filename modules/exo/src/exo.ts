@@ -3,7 +3,7 @@ namespace EXO {
     export const parse = <T extends ObjectItemType = ObjectItemType>(str: string): ExoType<T> => {
         const base: Record<string, any> = {}
 
-        const lines = str.split('\n')
+        const lines = str.split(/\r\n|\n|\r/)
         let curKey: string | undefined
         for (const line of lines) {
             const keyMatch = line.match(/^\[(.*)\]$/)
@@ -91,10 +91,10 @@ namespace EXO {
                 let contents = ''
                 for (const key of this.keys()) {
                     const typedKey = key as keyof typeof this
-                    if (contents !== '') contents += '\n'
+                    if (contents !== '') contents += '\r\n'
                     contents += `[${key}]`
                     for (const subkey in this[typedKey]) {
-                        contents += `\n${subkey}=${this[typedKey][subkey]}`
+                        contents += `\r\n${subkey}=${this[typedKey][subkey]}`
                     }
                 }
                 return contents
