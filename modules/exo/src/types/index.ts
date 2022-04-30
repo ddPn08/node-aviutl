@@ -41,5 +41,5 @@ export type ExoType<T extends ObjectItemType> = {
     toString(): string
     addItem(item: ObjectItemType): void
     deleteItem(key: string): void
-    toObject(): ExoObject<T>
+    toJson(): ExoObject<T>
 } & ExoObject<T>

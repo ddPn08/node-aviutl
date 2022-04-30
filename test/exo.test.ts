@@ -1,4 +1,4 @@
-import * as EXO from '@aviutil/exo'
+import EXO from '@aviutil/exo'
 
 describe('exo from object', () => {
     const exo = EXO.create({
@@ -22,14 +22,19 @@ describe('exo from object', () => {
         expect(exo.keys()).toContain('0.0')
         expect(exo.keys()).toContain('0.1')
     })
-    test('check to object method', () => {
-        const obj = exo.toObject()
-        const keys = Object.keys(obj)
+    test('check to json method', () => {
+        const json = exo.toJson()
+        const keys = Object.keys(json)
         expect(keys).toHaveLength(4)
         expect(keys).toContain('exedit')
         expect(keys).toContain('0')
         expect(keys).toContain('0.0')
         expect(keys).toContain('0.1')
+    })
+    test('check from json method', () => {
+        const json = exo.toJson()
+        const clone = EXO.createFromJson(json)
+        expect(clone.toString()).toBe(exo.toString())
     })
     test('check add item method', () => {
         exo.addItem({
@@ -53,7 +58,7 @@ start=1
 _name=テキスト
 [0.1]
 _name=標準描画`
-    const exo = EXO.fromString(str)
+    const exo = EXO.parse(str)
     test('check string exo', () => {
         expect(exo.toString()).toBe(str)
     })
