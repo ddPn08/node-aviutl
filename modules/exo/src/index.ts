@@ -1,3 +1,2 @@
-import EXO from './exo'
-export default EXO
+export * from './exo'
 export * from './types'

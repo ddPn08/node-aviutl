@@ -1,6 +1,16 @@
-import type { Exedit, ExoType, ExoObject, ObjectFooter, ObjectHeader, ObjectItemType } from './types'
-namespace EXO {
-    export const parse = <T extends ObjectItemType = ObjectItemType>(str: string): ExoType<T> => {
+import type { ItemObject, Exedit, ItemFooter, ItemHeader, BaseItem } from './types'
+
+export class EXO {
+    public static create(c: { exedit?: Exedit; items: BaseItem[] }) {
+        const object: Record<string, any> = {}
+        object['exedit'] = c.exedit || {}
+
+        for (const item of c.items) for (const key in item) object[key] = item[key as keyof BaseItem]
+
+        return new EXO(object)
+    }
+
+    private static parseFromString(str: string) {
         const base: Record<string, any> = {}
 
         const lines = str.split(/\r\n|\n|\r/)
@@ -15,133 +25,132 @@ namespace EXO {
             } else if (valueMatch) {
                 if (!curKey) throw new Error('curKey is not defined')
                 const key = valueMatch[1]!
-                const value = valueMatch[2]!
+                const value = Number(valueMatch[2]!) || valueMatch[2]!
                 if (!key) throw new Error('key is empty')
                 base[curKey]![key] = value
             }
         }
 
-        const { exedit, '0': header, '0.0': item, ...rest } = base
-        const last = Object.keys(rest).pop() as string
-        const { [last]: footer, ...extras } = rest
-
-        return create({
-            exedit,
-            header,
-            item,
-            extras,
-            footer,
-        })
+        return new EXO(base)
     }
 
-    export const create = <T extends ObjectItemType>(context: {
-        item: T
-        extras?: Record<string, any>
-        exedit?: Exedit
-        header?: ObjectHeader
-        footer?: ObjectFooter
-    }): ExoType<T> => {
-        context.exedit = context.exedit || {
-            width: 1902,
-            height: 1080,
-            rate: 60,
-            scale: 1,
-            length: 2001,
-            audio_rate: 44100,
-            audio_ch: 2,
-        }
-        context.header = context.header || {
-            start: 1,
-            end: 1001,
-            layer: 1,
-            overlay: 1,
-            camera: 0,
-        }
-        context.footer = context.footer || {
-            _name: '標準描画',
-            X: 0,
-            Y: 0,
-            Z: 0,
-            拡大率: 100,
-            透明度: 0,
-            回転: 0,
-            blend: 0,
-        }
+    private static parseFromJson(json: Record<string, any>) {
+        return new EXO(json)
+    }
 
-        const obj: ExoObject<T> = {
-            exedit: context.exedit,
-            '0': context.header,
-            '0.0': context.item,
+    public static parse(str: string | Record<string, any>) {
+        if (typeof str === 'string') {
+            try {
+                return EXO.parseFromJson(JSON.parse(str))
+            } catch (_) {
+                return EXO.parseFromString(str)
+            }
         }
-        if (context.extras) for (const key in context.extras) obj[key as keyof ExoObject<T>] = context.extras[key]
+        return EXO.parseFromJson(str)
+    }
 
-        obj[`0.${Object.keys(obj).length - 2}`] = context.footer
+    public readonly exedit: Exedit
+    public readonly items: BaseItem[] = []
 
-        return {
-            keys(): string[] {
-                return Object.keys(this)
-                    .filter((v) => typeof this[v as keyof typeof this] !== 'function')
-                    .sort((a, b) => {
-                        if (a === 'exedit') return -1
-                        if (b === 'exedit') return 1
-                        return Number(a) - Number(b)
-                    })
-            },
-            toString() {
-                let contents = ''
-                for (const key of this.keys()) {
-                    const typedKey = key as keyof typeof this
-                    if (contents !== '') contents += '\r\n'
-                    contents += `[${key}]`
-                    for (const subkey in this[typedKey]) {
-                        contents += `\r\n${subkey}=${this[typedKey][subkey]}`
-                    }
-                }
-                return contents
-            },
-            addItem(item: ObjectItemType) {
-                const footer = obj[`0.${Object.keys(obj).length - 3}`]
-                this[`0.${Object.keys(obj).length - 3}`] = item
-                this[`0.${Object.keys(obj).length - 2}`] = footer
-            },
-            deleteItem(key: `0.${number}`) {
-                if (!this.keys().includes(key)) throw new Error(`${key} is not found`)
-                const index = key.replace(/^0\./, '')
-                delete this[key]
-                const behind = this.keys().filter((k) => k.replace(/^0\./, '') > index)
-                delete behind[0]
-                behind.forEach((k) => {
-                    const typedKey = k as keyof typeof this
-                    const item = this[typedKey]
-                    this[`0.${Number(k.replace(/^0\./, '')) - 1}`] = item
-                    delete this[typedKey]
+    private constructor(object: Record<string, any>) {
+        const keys = Object.keys(object).sort((a, b) => {
+            if (a === 'exedit') return -1
+            if (b === 'exedit') return 1
+            return Number(a) - Number(b)
+        })
+
+        if (!keys.includes('exedit')) throw new Error('exedit is not found')
+        this.exedit = object['exedit']
+
+        for (const key of keys) {
+            if (key === 'exedit') continue
+            if (key.match(/\d/) && key.length === 1) {
+                const item = object[key]
+                this.items.push({
+                    [key]: item,
                 })
-            },
-            toJson() {
-                const cloned: Record<string, any> = {}
-                for (const key of this.keys()) {
-                    const typedKey = key as keyof typeof this
-                    cloned[typedKey] = this[typedKey]
-                }
-                return cloned as ExoObject<T>
-            },
-            ...obj,
+                continue
+            }
+            const match = key.match(/(\d)\.(\d)/)
+            if (!match) continue
+            const index = Number(match[1])
+            const subIndex = Number(match[2])
+            const item = this.items.find((i) => i[`${index}`])
+            if (!item) throw new Error(`${key} is not found`)
+            item[`${index}.${subIndex}`] = object[key]
         }
     }
 
-    export const createFromJson = <T extends ObjectItemType>(json: ExoObject<T>): ExoType<T> => {
-        const { exedit, '0': header, '0.0': item, ...rest } = json as Record<string, any>
-        const last = Object.keys(rest).pop() as string
-        const { [last]: footer, ...extras } = rest
+    public toJSON() {
+        const items: Record<string, Exedit | ItemObject | ItemHeader | ItemFooter> = {
+            exedit: this.exedit,
+        }
+        for (const item of this.items) {
+            for (const key in item) {
+                if (key.match(/\d/) && key.length === 1) {
+                    items[key] = item[`${Number(key)}`] as ItemHeader
+                } else if (key.match(/(\d)\.(\d)/)) {
+                    const match = key.match(/(\d)\.(\d)/)!
+                    items[key] = item[`${Number(match[1])}.${Number(match[2])}`] as ItemObject | ItemFooter
+                }
+            }
+        }
+        const object: Record<string, any> = {}
+        for (const key of Object.keys(items)) object[key] = items[key]
+        return object
+    }
 
-        return create({
-            exedit,
-            header,
-            item,
-            extras,
-            footer,
+    public toString() {
+        const json = this.toJSON()
+        const keys = Object.keys(json).sort((a, b) => {
+            if (a === 'exedit') return -1
+            if (b === 'exedit') return 1
+            return Number(a) - Number(b)
         })
+        const lines: string[] = []
+        for (const key of keys) {
+            lines.push(`[${key}]`)
+            for (const key2 in json[key]) {
+                const item = json[key]!
+                lines.push(`${key2}=${item![key2 as keyof typeof item]}`)
+            }
+        }
+        return lines.join('\r\n')
+    }
+
+    public pushItem(c: { header: ItemHeader; objects: ItemObject[]; footer: ItemFooter }) {
+        const index = this.items.length
+        const item: BaseItem = {
+            [`${index}`]: c.header,
+        }
+        for (const object of c.objects) {
+            const sub = Object.keys(item).length - 1
+            item[`${index}.${sub}`] = object
+        }
+        item[`${index}.${Object.keys(item).length - 1}`] = c.footer
+        this.items.push(item)
+    }
+
+    public deleteItem(index: number) {
+        const toRemove = this.items.find((i) => i[`${index}`])
+        if (!toRemove) throw new Error(`${index} is not found`)
+        this.items.splice(index, 1)
+
+        const toFix = Object.keys(this.items).filter((v) => Number(v) > index)
+
+        for (const key of toFix) {
+            const item = this.items[Number(key)]
+            for (const key2 in item) {
+                const typed = key2 as keyof typeof item
+                const replaced = typed.replace(/\d+/, (v) => `${Number(v) - 1}`)
+                delete Object.assign(item, {
+                    [replaced]: item[typed],
+                })[key2]
+            }
+        }
     }
 }
 
-export default EXO
+export const isItem = (v: any): v is BaseItem => {
+    return Object.keys(v).some((k) => k.match(/\d/)) && Object.keys(v).some((k) => k.match(/(\d)\.(\d)/))
+}

@@ -8,59 +8,89 @@
 ## Create exo
 
 ```ts
-import * as EXO from '@aviutil/exo'
+import { EXO } from '@aviutil/exo'
 
 const exo = EXO.create({
-    item: {
+  exedit: {
+    width: 1920,
+    height: 1080,
+    rate: 60,
+    scale: 1,
+    length: 10,
+    audio_rate: 44100,
+    audio_ch: 2,
+  },
+  items: [
+    {
+      '0': {
+        start: 1,
+        end: 2,
+        layer: 1,
+        overlay: 1,
+        camera: 1,
+      },
+      '0.0': {
         _name: 'オブジェクト',
+      },
+      '0.1': {
+        _name: '標準描画',
+        X: 0.0,
+        Y: 0.0,
+        Z: 0.0,
+        拡大率: 1.0,
+        透明度: 0,
+        回転: 0,
+        blend: 0,
+      },
     },
+  ],
 })
 
-const str = exo.toString()
+console.log(exo.toString())
 // ->
 // [exedit]
 // width=1920
 // height=1080
 // rate=60
 // scale=1
-// length=1001
+// length=10
 // audio_rate=44100
 // audio_ch=2
 // [0]
 // start=1
-// end=1001
+// end=2
 // layer=1
 // overlay=1
-// camera=0
+// camera=1
 // [0.0]
 // _name=オブジェクト
 // [0.1]
 // _name=標準描画
-// X=0.0
-// Y=450.0
-// Z=0.0
-// 拡大率=100.00
-// 透明度=0.0
-// 回転=0.00
+// X=0
+// Y=0
+// Z=0
+// 拡大率=100
+// 透明度=0
+// 回転=0
 // blend=0
 ```
 
-## Parse exo string
+## Parse string
 
 ```ts
-import * as EXO from '@aviutil/exo'
+import { EXO } from '../src'
 
 const str = `[exedit]
 width=1920
 height=1080
 rate=60
 scale=1
-length=1001
+length=10
 audio_rate=44100
 audio_ch=2
 [0]
 start=1
-end=1001
+end=2
 layer=1
 overlay=1
 camera=0
@@ -77,8 +107,41 @@ Z=0.0
 blend=0
 `
 
-const exo = EXO.fromString(str)
+const exo = EXO.parse(str)
 
-console.log(exo['0.0']['_name'])
+console.log(exo.items[0]['0.0']['_name'])
+// -> オブジェクト
+```
+
+## Parse json
+
+```ts
+const json = {
+    exedit: {
+        width: 1920,
+        height: 1080,
+        rate: 60,
+        scale: 1,
+        length: 10,
+        audio_rate: 44100,
+        audio_ch: 2,
+    },
+    '0': { start: 1, end: 2, layer: 1, overlay: 1, camera: '0' },
+    '0.0': { _name: 'オブジェクト' },
+    '0.1': {
+        _name: '標準描画',
+        X: '0.0',
+        Y: 450,
+        Z: '0.0',
+        拡大率: 100,
+        透明度: '0.0',
+        回転: '0.00',
+        blend: '0',
+    },
+}
+
+const exo = EXO.parse(json)
+
+console.log(exo.items[0]['0.0']['_name'])
 // -> オブジェクト
 ```
