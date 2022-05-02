@@ -1,0 +1,10 @@
+{
+  "extends": "@tsconfig/node16-strictest-esm",
+  "compilerOptions": {
+    "composite": true,
+    "moduleResolution": "node"
+  },
+  "include": [
+    "./test"
+  ]
+}
