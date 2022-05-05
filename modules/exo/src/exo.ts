@@ -1,3 +1,5 @@
+import { parseExFile, stringifyExFile } from '@aviutil/ex'
+
 import type { ItemObject, Exedit, ItemFooter, ItemHeader, BaseItem } from './types.js'
 
 export class EXO {
@@ -11,26 +13,7 @@ export class EXO {
     }
 
     private static parseFromString(str: string) {
-        const base: Record<string, any> = {}
-
-        const lines = str.split(/\r\n|\n|\r/)
-        let curKey: string | undefined
-        for (const line of lines) {
-            const keyMatch = line.match(/^\[(.*)\]$/)
-            const valueMatch = line.match(/^(.*)=(.*)$/)
-            if (keyMatch) {
-                const key = keyMatch[1]!
-                curKey = key
-                base[key] = {}
-            } else if (valueMatch) {
-                if (!curKey) throw new Error('curKey is not defined')
-                const key = valueMatch[1]!
-                const value = Number(valueMatch[2]!) || valueMatch[2]!
-                if (!key) throw new Error('key is empty')
-                base[curKey]![key] = value
-            }
-        }
-
+        const base = parseExFile(str)
         return new EXO(base)
     }
 
@@ -41,12 +24,12 @@ export class EXO {
     public static parse(str: string | Record<string, any>) {
         if (typeof str === 'string') {
             try {
-                return EXO.parseFromJson(JSON.parse(str))
+                return this.parseFromJson(JSON.parse(str))
             } catch (_) {
-                return EXO.parseFromString(str)
+                return this.parseFromString(str)
             }
         }
-        return EXO.parseFromJson(str)
+        return this.parseFromJson(str)
     }
 
     public readonly exedit: Exedit
@@ -101,21 +84,7 @@ export class EXO {
     }
 
     public toString() {
-        const json = this.toJSON()
-        const keys = Object.keys(json).sort((a, b) => {
-            if (a === 'exedit') return -1
-            if (b === 'exedit') return 1
-            return Number(a) - Number(b)
-        })
-        const lines: string[] = []
-        for (const key of keys) {
-            lines.push(`[${key}]`)
-            for (const key2 in json[key]) {
-                const item = json[key]!
-                lines.push(`${key2}=${item![key2 as keyof typeof item]}`)
-            }
-        }
-        return lines.join('\r\n')
+        return stringifyExFile(this.toJSON()).replace(/\n/g, '\r\n')
     }
 
     public pushItem(c: { header: ItemHeader; objects: ItemObject[]; footer: ItemFooter }) {

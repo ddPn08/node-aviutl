@@ -1,9 +1,10 @@
 {
   "name": "@aviutil/exo",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "main": "./src/index.ts",
   "module": "./src/index.ts",
   "dependencies": {
+    "@aviutil/ex": "workspace:^",
     "iconv-lite": "^0.6.3"
   },
   "devDependencies": {
