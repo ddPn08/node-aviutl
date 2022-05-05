@@ -7,16 +7,15 @@ import typescript from 'typescript'
 
 import { WORKSPACES } from './__setup.mjs'
 
-WORKSPACES.map(async (module) => {
+WORKSPACES.forEach(async (module) => {
     const dir = path.join(__dirname, '../modules', module)
-    process.chdir(dir)
 
     const packageJson = JSON.parse(await fs.promises.readFile(path.join(dir, 'package.json'), 'utf8'))
     if (packageJson.scripts && packageJson.scripts.prebuild) {
         console.log(`Found prebuild script for ${module}`)
         execSync(`yarn prebuild`, { stdio: 'inherit' })
     }
-    const files = await glob('src/**/*.{ts,tsx}', { cwd: dir })
+    const files = await glob(path.join(dir, 'src/**/*.{ts,tsx}'))
 
     /**
      * Build module with esbuild
@@ -24,7 +23,7 @@ WORKSPACES.map(async (module) => {
 
     /** @type {import("esbuild").BuildOptions} */
     const options = {
-        entryPoints: [path.resolve(packageJson.main)],
+        entryPoints: [path.join(dir, packageJson.main)],
         platform: 'node',
         bundle: true,
         external: [...Object.keys(packageJson.dependencies || {}), ...Object.keys(packageJson.devDependencies || {})],
