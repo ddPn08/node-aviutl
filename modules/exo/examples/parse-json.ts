@@ -1,4 +1,4 @@
-import { EXO } from '../src'
+import { EXO } from '..'
 
 const json = {
     exedit: {
@@ -26,5 +26,5 @@ const json = {
 
 const exo = EXO.parse(json)
 
-console.log(exo.items[0]['0.0']['_name'])
+console.log(exo.items[0]!['0.0']!['_name'])
 // -> オブジェクト

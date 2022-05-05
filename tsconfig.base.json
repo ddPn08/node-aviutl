@@ -3,6 +3,11 @@
   "compilerOptions": {
     "composite": true,
     "module": "NodeNext",
-    "allowJs": true
+    "declaration": true,
+    "paths": {
+      "@/*": [
+        "*"
+      ],
+    }
   }
 }

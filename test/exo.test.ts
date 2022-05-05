@@ -134,7 +134,6 @@ _name=標準描画`.replace(/\n/g, '\r\n')
         })
         test('should have all the correct keys', () => {
             const json = exo.toJSON()
-            console.log(json)
             const keys = Object.keys(json)
             expect(keys.length).toBe(4)
             expect(keys).toContain('exedit')

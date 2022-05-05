@@ -1,4 +1,4 @@
-import { EXO } from '@aviutil/exo'
+import { EXO } from '..'
 
 const exo = EXO.create({
     exedit: {

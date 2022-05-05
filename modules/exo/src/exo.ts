@@ -1,4 +1,4 @@
-import type { ItemObject, Exedit, ItemFooter, ItemHeader, BaseItem } from './types'
+import type { ItemObject, Exedit, ItemFooter, ItemHeader, BaseItem } from './types.js'
 
 export class EXO {
     public static create(c: { exedit?: Exedit; items: BaseItem[] }) {

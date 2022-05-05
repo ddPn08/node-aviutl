@@ -1,2 +1,2 @@
-export * from './exo'
-export * from './types'
+export * from './exo.js'
+export * from './types.js'

@@ -1,8 +1,8 @@
 import { execSync } from 'child_process'
 import esbuild from 'esbuild'
 import fs from 'fs'
-import glob from 'glob'
 import path from 'path'
+import glob from 'tiny-glob'
 import typescript from 'typescript'
 
 import { WORKSPACES } from './__setup.mjs'
@@ -16,8 +16,7 @@ WORKSPACES.map(async (module) => {
         console.log(`Found prebuild script for ${module}`)
         execSync(`yarn prebuild`, { stdio: 'inherit' })
     }
-
-    const files = glob.sync(`src/**/*.ts`).map((file) => path.resolve(file))
+    const files = await glob('src/**/*.{ts,tsx}', { cwd: dir })
 
     /**
      * Build module with esbuild
@@ -25,8 +24,10 @@ WORKSPACES.map(async (module) => {
 
     /** @type {import("esbuild").BuildOptions} */
     const options = {
-        entryPoints: files,
+        entryPoints: [path.resolve(packageJson.main)],
         platform: 'node',
+        bundle: true,
+        external: [...Object.keys(packageJson.dependencies || {}), ...Object.keys(packageJson.devDependencies || {})],
     }
 
     esbuild
@@ -34,6 +35,9 @@ WORKSPACES.map(async (module) => {
             ...options,
             outdir: path.join(dir, 'dist', 'cjs'),
             format: 'cjs',
+            outExtension: {
+                '.js': '.cjs',
+            },
         })
         .then(() => console.log(`${module} cjs build complete`))
     esbuild
@@ -41,6 +45,9 @@ WORKSPACES.map(async (module) => {
             ...options,
             outdir: path.join(dir, 'dist', 'esm'),
             format: 'esm',
+            outExtension: {
+                '.js': '.mjs',
+            },
         })
         .then(() => console.log(`${module} esm build complete`))
 

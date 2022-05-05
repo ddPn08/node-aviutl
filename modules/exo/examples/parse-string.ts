@@ -1,4 +1,4 @@
-import { EXO } from '../src'
+import { EXO } from '..'
 
 const str = `[exedit]
 width=1920
@@ -28,8 +28,6 @@ blend=0
 `
 
 const exo = EXO.parse(str)
-
-console.log(exo.items[0]['0.0']['_name'])
 
 console.log(exo.toJSON())
 // -> オブジェクト
